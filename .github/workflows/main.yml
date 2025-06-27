@@ -7,7 +7,7 @@ on:
         description: 'On-Demand Build'
 
 env:
-  ANCHORECTL_URL: http://anchore.nizati.com
+  ANCHORECTL_URL: ${{ vars.ANCHORECTL_URL }} # Keep this referencing your GitHub variable
   ANCHORECTL_USERNAME: ${{ vars.ANCHORECTL_USERNAME }}
   ANCHORECTL_PASSWORD: ${{ secrets.ANCHORECTL_PASSWORD }}
   ANCHORECTL_FAIL_BASED_ON_RESULTS: false
@@ -16,7 +16,7 @@ env:
 # Add permissions at the workflow level to allow writing to packages
 permissions:
   contents: read # Default, good practice to explicitly state
-  packages: write # <--- CRITICAL FIX: Add write permission for packages
+  packages: write # Critical: Add write permission for packages
 
 jobs:
   Build:
@@ -83,12 +83,14 @@ jobs:
           curl -sSfL https://anchorectl-releases.anchore.io/anchorectl/install.sh | sh -s -- -b ${HOME}/.local/bin v1.6.0
           echo "${HOME}/.local/bin" >> $GITHUB_PATH
 
+      - name: Verify AnchoreCTL connection and environment
+        run: |
+          echo "Attempting to connect to AnchoreCTL at: ${{ env.ANCHORECTL_URL }}"
+          anchorectl system status # Verify connection to Anchore Enterprise
+
       - name: Generate SBOM and Push to Anchore
         run: |
           # Specify the Dockerfile path relative to the workspace root for anchorectl
-
-          echo ANCHORECTL_URL
-          
           anchorectl image add --no-auto-subscribe --wait --from registry --dockerfile Dockerfile ${IMAGE}
 
       - name: Pull Vulnerability List
