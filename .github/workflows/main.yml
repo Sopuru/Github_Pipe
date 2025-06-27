@@ -39,12 +39,22 @@ jobs:
             type=ref,event=branch
             type=sha,format=long
 
+      # --- DEBUGGING STEP (Keep this to confirm the path) ---
+      - name: Debug - List Files in Dockerfile Directory
+        run: |
+          echo "Listing files in .github/workflows/ directory (the Dockerfile context):"
+          ls -alF ${{ github.workspace }}/.github/workflows/
+          echo ""
+          echo "Expected Dockerfile path relative to context: Dockerfile"
+      # --- END DEBUGGING STEP ---
+
       - name: Build and Push Container Image
         uses: docker/build-push-action@v6
         with:
-          context: ${{ github.workspace }}
-          # *** FIX: Correct Dockerfile path ***
-          file: ${{ github.workspace }}/.github/workflows/Dockerfile # Corrected path
+          # *** FIX: Set context to the directory containing the Dockerfile ***
+          context: ${{ github.workspace }}/.github/workflows/
+          # *** FIX: Set file to just the Dockerfile's name (relative to context) ***
+          file: Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
@@ -69,9 +79,8 @@ jobs:
 
       - name: Generate SBOM and Push to Anchore
         run: |
-          # Use the correct Dockerfile path here too, if anchorectl needs it
+          # The --dockerfile path for anchorectl needs to be relative to the workspace root
           anchorectl image add --no-auto-subscribe --wait --from registry --dockerfile .github/workflows/Dockerfile ${IMAGE}
-          # Note: I've also updated the --dockerfile path for anchorectl as it runs from the workspace root
 
       - name: Pull Vulnerability List
         run: |
