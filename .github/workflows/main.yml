@@ -7,7 +7,7 @@ on:
         description: 'On-Demand Build'
 
 env:
-  ANCHORECTL_URL: "http://anchore.nizati.com/"
+  ANCHORECTL_URL: "http://anchore.nizati.com"
   ANCHORECTL_USERNAME: ${{ vars.ANCHORECTL_USERNAME }}
   ANCHORECTL_PASSWORD: ${{ secrets.ANCHORECTL_PASSWORD }}
   ANCHORECTL_FAIL_BASED_ON_RESULTS: false
@@ -86,6 +86,8 @@ jobs:
       - name: Generate SBOM and Push to Anchore
         run: |
           # Specify the Dockerfile path relative to the workspace root for anchorectl
+
+          echo ANCHORECTL_URL
           
           anchorectl image add --no-auto-subscribe --wait --from registry --dockerfile Dockerfile ${IMAGE}
 
