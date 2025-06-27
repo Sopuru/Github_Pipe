@@ -86,8 +86,8 @@ jobs:
       - name: Generate SBOM and Push to Anchore
         run: |
           # Specify the Dockerfile path relative to the workspace root for anchorectl
-          anchorectl system status
-          anchorectl image add alpine:latest
+          ANCHORECTL_URL=ANCHORECTL_URL ANCHORECTL_USERNAME=ANCHORECTL_USERNAME ANCHORECTL_PASSWORD=ANCHORECTL_PASSWORD anchorectl system status
+          ANCHORECTL_URL=ANCHORECTL_URL ANCHORECTL_USERNAME=ANCHORECTL_USERNAME ANCHORECTL_PASSWORD=ANCHORECTL_PASSWORD anchorectl image add alpine:latest
           anchorectl image add --no-auto-subscribe --wait --from registry --dockerfile Dockerfile ${IMAGE}
 
       - name: Pull Vulnerability List
