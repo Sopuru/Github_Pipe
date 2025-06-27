@@ -43,7 +43,7 @@ jobs:
       - name: Debug - List Files in Dockerfile Directory
         run: |
           echo "Listing files in .github/workflows/ directory (the Dockerfile context):"
-          ls -alF ${{ github.workspace }}/.github/workflows/
+          ls -alF ${{ github.workspace }}
           echo ""
           echo "Expected Dockerfile path relative to context: Dockerfile"
       # --- End Debugging Step ---
