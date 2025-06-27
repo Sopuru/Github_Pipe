@@ -30,7 +30,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Use docker/metadata-action to generate tags (still best practice for consistent tagging)
       - name: Extract Docker metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -40,27 +39,12 @@ jobs:
             type=ref,event=branch
             type=sha,format=long
 
-      # --- DEBUGGING STEP ADDED HERE ---
-      - name: Debug - List Files in Workspace and Verify Dockerfile Path
-        run: |
-          echo "Listing files in the root of the workspace (${{ github.workspace }}):"
-          ls -alF ${{ github.workspace }}
-          echo ""
-          echo "Listing files in .github/workflows directory (just for context):"
-          ls -alF ${{ github.workspace }}/.github/workflows/
-          echo ""
-          echo "Attempting to locate Dockerfile with 'find':"
-          find ${{ github.workspace }} -name "Dockerfile" # Case-sensitive find for 'Dockerfile'
-          find ${{ github.workspace }} -iname "dockerfile" # Case-insensitive find for 'dockerfile'
-          echo ""
-          echo "The Dockerfile path being used in the next step is set to: ${{ github.workspace }}/Dockerfile"
-      # --- END DEBUGGING STEP ---
-
       - name: Build and Push Container Image
         uses: docker/build-push-action@v6
         with:
           context: ${{ github.workspace }}
-          file: ${{ github.workspace }}/Dockerfile # Assuming Dockerfile is in the root
+          # *** FIX: Correct Dockerfile path ***
+          file: ${{ github.workspace }}/.github/workflows/Dockerfile # Corrected path
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: true
@@ -85,7 +69,9 @@ jobs:
 
       - name: Generate SBOM and Push to Anchore
         run: |
-          anchorectl image add --no-auto-subscribe --wait --from registry --dockerfile Dockerfile ${IMAGE}
+          # Use the correct Dockerfile path here too, if anchorectl needs it
+          anchorectl image add --no-auto-subscribe --wait --from registry --dockerfile .github/workflows/Dockerfile ${IMAGE}
+          # Note: I've also updated the --dockerfile path for anchorectl as it runs from the workspace root
 
       - name: Pull Vulnerability List
         run: |
