@@ -86,7 +86,7 @@ jobs:
       - name: Generate SBOM and Push to Anchore
         run: |
           # Specify the Dockerfile path relative to the workspace root for anchorectl
-          anchorectl version
+          anchorectl system status
           anchorectl image add alpine:latest
           anchorectl image add --no-auto-subscribe --wait --from registry --dockerfile Dockerfile ${IMAGE}
 
