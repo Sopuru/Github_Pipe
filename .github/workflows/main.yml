@@ -13,6 +13,11 @@ env:
   ANCHORECTL_FAIL_BASED_ON_RESULTS: false
   REGISTRY: ghcr.io
 
+# Add permissions at the workflow level to allow writing to packages
+permissions:
+  contents: read # Default, good practice to explicitly state
+  packages: write # <--- CRITICAL FIX: Add write permission for packages
+
 jobs:
   Build:
     runs-on: ubuntu-latest
