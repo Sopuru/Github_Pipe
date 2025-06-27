@@ -7,7 +7,7 @@ on:
         description: 'On-Demand Build'
 
 env:
-  ANCHORECTL_URL: "http://anchore.nizati.com"
+  ANCHORECTL_URL: http://anchore.nizati.com
   ANCHORECTL_USERNAME: ${{ vars.ANCHORECTL_USERNAME }}
   ANCHORECTL_PASSWORD: ${{ secrets.ANCHORECTL_PASSWORD }}
   ANCHORECTL_FAIL_BASED_ON_RESULTS: false
