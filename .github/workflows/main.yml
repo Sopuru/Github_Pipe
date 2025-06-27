@@ -20,8 +20,10 @@ jobs:
       - name: "Set IMAGE environmental variables"
         run: |
           # Convert GITHUB_REPOSITORY to lowercase for the image tag
-          echo "IMAGE=${REGISTRY}/$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]'):${GITHUB_REF_NAME}" >> $GITHUB_ENV
-          echo "Debug: IMAGE set to ${{ env.IMAGE }}" # Add for debugging
+          # Use GITHUB_REPOSITORY_LOWER for clarity in subsequent steps
+          echo "GITHUB_REPOSITORY_LOWER=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          echo "IMAGE=${{ env.REGISTRY }}/${{ env.GITHUB_REPOSITORY_LOWER }}:${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          echo "Debug: IMAGE set to ${{ env.IMAGE }}"
 
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -39,11 +41,13 @@ jobs:
       - name: Build local container and push
         uses: docker/build-push-action@v3
         with:
-          context: . # Explicitly set build context to current directory
+          context: .  # Explicitly set build context to current directory
           file: ./Dockerfile # Explicitly set Dockerfile path
           tags: ${{ env.IMAGE }}
           push: true
-          load: false
+          # No 'load: false' here, as we are directly pushing.
+          # The 'load' option is for loading into the local docker daemon,
+          # which is not needed if you are directly pushing to a registry.
 
   Anchore:
     runs-on: ubuntu-latest
@@ -52,7 +56,7 @@ jobs:
       - name: "Set IMAGE environmental variables"
         run: |
           # Convert GITHUB_REPOSITORY to lowercase for the image tag
-          echo "IMAGE=${REGISTRY}/$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]'):${GITHUB_REF_NAME}" >> $GITHUB_ENV
+          echo "IMAGE=${{ env.REGISTRY }}/$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]'):${GITHUB_REF_NAME}" >> $GITHUB_ENV
 
       - name: Checkout Code
         uses: actions/checkout@v3
