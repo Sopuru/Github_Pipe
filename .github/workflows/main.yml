@@ -7,7 +7,7 @@ on:
         description: 'On-Demand Build'
 
 env:
-  ANCHORECTL_URL: ${{ vars.ANCHORECTL_URL }} # Keep this referencing your GitHub variable
+  ANCHORECTL_URL: ${{ vars.ANCHORECTL_URL }} # This needs to be the actual URL of your Anchore Enterprise
   ANCHORECTL_USERNAME: ${{ vars.ANCHORECTL_USERNAME }}
   ANCHORECTL_PASSWORD: ${{ secrets.ANCHORECTL_PASSWORD }}
   ANCHORECTL_FAIL_BASED_ON_RESULTS: false
@@ -78,10 +78,27 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Install Latest anchorectl Binary
+      - name: Install anchorectl from Anchore Enterprise
         run: |
-          curl -sSfL https://anchorectl-releases.anchore.io/anchorectl/install.sh | sh -s -- -b ${HOME}/.local/bin v1.6.0
-          echo "${HOME}/.local/bin" >> $GITHUB_PATH
+          # Download and extract anchorectl binary directly from the Enterprise instance.
+          # The URL is constructed using the ANCHORECTL_URL environment variable.
+          # 'tar -zx anchorectl' extracts the 'anchorectl' file from the gzipped tarball.
+          curl -sSfL -X GET "${{ env.ANCHORECTL_URL }}system/anchorectl?operating_system=linux&architecture=amd64" \
+          -H "accept: */*" \
+          | tar -zx anchorectl
+
+          # Make the extracted binary executable
+          chmod +x anchorectl
+
+          # Move the binary to a directory that is typically in the PATH (e.g., /usr/local/bin)
+          # This ensures that subsequent 'anchorectl' commands can be found without explicitly
+          # specifying their path (e.g., ./anchorectl).
+          sudo mv anchorectl /usr/local/bin/anchorectl
+
+          # Verify the installation by checking its location and version
+          echo "Verifying anchorectl installation:"
+          which anchorectl
+          anchorectl --version
 
       - name: Verify AnchoreCTL connection and environment
         run: |
