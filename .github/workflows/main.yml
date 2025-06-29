@@ -83,7 +83,7 @@ jobs:
           # Download and extract anchorectl binary directly from the Enterprise instance.
           # The URL is constructed using the ANCHORECTL_URL environment variable.
           # 'tar -zx anchorectl' extracts the 'anchorectl' file from the gzipped tarball.
-          curl -sSfL -X GET "${{ env.ANCHORECTL_URL }}system/anchorectl?operating_system=linux&architecture=amd64" \
+          curl -sSfL -X GET "${{ env.ANCHORECTL_URL }}v2/system/anchorectl?operating_system=linux&architecture=amd64" \
           -H "accept: */*" \
           | tar -zx anchorectl
 
