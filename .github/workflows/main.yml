@@ -109,12 +109,12 @@ jobs:
       - name: Generate SBOM and Push to Anchore
         run: |
           # Specify the Dockerfile path relative to the workspace root for anchorectl
-          anchorectl image add --no-auto-subscribe --wait --from registry --dockerfile Dockerfile ${IMAGE}
+          ANCHORECTL_URL="https://anchore.nizati.com/" anchorectl image add --no-auto-subscribe --wait --from registry --dockerfile Dockerfile ${IMAGE}
 
       - name: Pull Vulnerability List
         run: |
-          anchorectl image vulnerabilities ${IMAGE}
+         ANCHORECTL_URL="https://anchore.nizati.com/" anchorectl image vulnerabilities ${IMAGE}
 
       - name: Pull Policy Evaluation
         run: |
-          anchorectl image check --detail ${IMAGE}
+          ANCHORECTL_URL="https://anchore.nizati.com/" anchorectl image check --detail ${IMAGE}
