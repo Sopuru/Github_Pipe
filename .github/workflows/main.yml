@@ -7,7 +7,12 @@ on:
         description: 'On-Demand Build'
 
 env:
-  ANCHORECTL_URL: ${{ vars.ANCHORECTL_URL }} # This needs to be the actual URL of your Anchore Enterprise
+  # The base URL for all anchorectl commands.
+  # Anchorectl typically handles appending the API version (e.g., /v2/) internally.
+  ANCHORECTL_URL: https://anchore.nizati.com/ # This needs to be the actual base URL of your Anchore Enterprise
+  # The explicit URL to download the anchorectl binary from your Enterprise instance.
+  # This includes the /v2/ segment because it's a direct download endpoint.
+  ANCHORECTL_DOWNLOAD_URL: https://anchore.nizati.com/v2/system/anchorectl?operating_system=linux&architecture=amd64
   ANCHORECTL_USERNAME: ${{ vars.ANCHORECTL_USERNAME }}
   ANCHORECTL_PASSWORD: ${{ secrets.ANCHORECTL_PASSWORD }}
   ANCHORECTL_FAIL_BASED_ON_RESULTS: false
@@ -80,10 +85,8 @@ jobs:
 
       - name: Install anchorectl from Anchore Enterprise
         run: |
-          # Download and extract anchorectl binary directly from the Enterprise instance.
-          # The URL is constructed using the ANCHORECTL_URL environment variable.
-          # 'tar -zx anchorectl' extracts the 'anchorectl' file from the gzipped tarball.
-          curl -sSfL -X GET "https://anchore.nizati.com/v2/system/anchorectl?operating_system=linux&architecture=amd64" \
+          # Download and extract anchorectl binary directly from the specified download URL.
+          curl -sSfL -X GET "${{ env.ANCHORECTL_DOWNLOAD_URL }}" \
           -H "accept: */*" \
           | tar -zx anchorectl
 
@@ -103,18 +106,20 @@ jobs:
       - name: Verify AnchoreCTL connection and environment
         run: |
           echo "Attempting to connect to AnchoreCTL at: ${{ env.ANCHORECTL_URL }}"
-          ANCHORECTL_URL="https://anchore.nizati.com/" ANCHORECTL_USERNAME="admin" ANCHORECTL_PASSWORD="Wu5P5StVsT1uErnKsGqtpCdIVTzGUXdi" anchorectl system status
-          # anchorectl system status # Verify connection to Anchore Enterprise
-          
+          # No need to explicitly pass ANCHORECTL_URL, ANCHORECTL_USERNAME, ANCHORECTL_PASSWORD here
+          # if they are set as environment variables at the job or workflow level.
+          # The shell will automatically pick them up.
+          anchorectl system status # Verify connection to Anchore Enterprise
+
       - name: Generate SBOM and Push to Anchore
         run: |
           # Specify the Dockerfile path relative to the workspace root for anchorectl
-          anchorectl image add --no-auto-subscribe --wait --from registry --dockerfile Dockerfile  ${IMAGE}
+          anchorectl image add --no-auto-subscribe --wait --from registry --dockerfile Dockerfile ${IMAGE}
 
       - name: Pull Vulnerability List
         run: |
-         anchorectl image vulnerabilities ${IMAGE}
+          anchorectl image vulnerabilities ${IMAGE}
 
       - name: Pull Policy Evaluation
         run: |
-         anchorectl image check --detail ${IMAGE}
+          anchorectl image check --detail ${IMAGE}
