@@ -105,6 +105,7 @@ jobs:
           echo "Attempting to connect to AnchoreCTL at: ${{ env.ANCHORECTL_URL }}"
           ANCHORECTL_URL="https://anchore.nizati.com/" ANCHORECTL_USERNAME="admin" ANCHORECTL_PASSWORD="Wu5P5StVsT1uErnKsGqtpCdIVTzGUXdi" anchorectl system status
           # anchorectl system status # Verify connection to Anchore Enterprise
+          ANCHORECTL_URL="https://anchore.nizati.com/" ANCHORECTL_USERNAME="admin" ANCHORECTL_PASSWORD="Wu5P5StVsT1uErnKsGqtpCdIVTzGUXdi" anchorectl image add alpine:latest
 
       - name: Generate SBOM and Push to Anchore
         run: |
