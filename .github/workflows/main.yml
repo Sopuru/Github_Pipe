@@ -83,7 +83,7 @@ jobs:
           # Download and extract anchorectl binary directly from the Enterprise instance.
           # The URL is constructed using the ANCHORECTL_URL environment variable.
           # 'tar -zx anchorectl' extracts the 'anchorectl' file from the gzipped tarball.
-          curl -sSfL -X GET "${{ env.ANCHORECTL_URL }}v2/system/anchorectl?operating_system=linux&architecture=amd64" \
+          curl -sSfL -X GET "https://anchore.nizati.com/v2/system/anchorectl?operating_system=linux&architecture=amd64" \
           -H "accept: */*" \
           | tar -zx anchorectl
 
@@ -105,8 +105,7 @@ jobs:
           echo "Attempting to connect to AnchoreCTL at: ${{ env.ANCHORECTL_URL }}"
           ANCHORECTL_URL="https://anchore.nizati.com/" ANCHORECTL_USERNAME="admin" ANCHORECTL_PASSWORD="Wu5P5StVsT1uErnKsGqtpCdIVTzGUXdi" anchorectl system status
           # anchorectl system status # Verify connection to Anchore Enterprise
-          ANCHORECTL_URL="https://anchore.nizati.com/" ANCHORECTL_USERNAME="admin" ANCHORECTL_PASSWORD="Wu5P5StVsT1uErnKsGqtpCdIVTzGUXdi" anchorectl image add alpine:latest
-
+          
       - name: Generate SBOM and Push to Anchore
         run: |
           # Specify the Dockerfile path relative to the workspace root for anchorectl
