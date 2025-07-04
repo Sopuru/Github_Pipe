@@ -23,8 +23,11 @@ jobs:
         uses: anchore/sbom-action@v0.12.0
         with:
           image: "alpine:latest"
-          output-file: "sbom.spdx.json"
+          output-file: "./sbom.spdx.json"
           upload-artifact: false
+
+      - name: List files in workspace (debug)
+        run: ls -la
 
       - name: Display SBOM in Logs
         run: |
