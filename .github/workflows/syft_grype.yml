@@ -1,0 +1,62 @@
+# .github/workflows/vulnerability-scan.yml
+
+name: Vulnerability Scan (Syft & Grype)
+
+on:
+  push:
+    branches:
+      - main # Trigger the workflow on pushes to the main branch
+  pull_request:
+    branches:
+      - main # Also trigger on pull requests targeting the main branch
+  workflow_dispatch: # Allows manual triggering of the workflow from the GitHub UI
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest # Run the job on the latest Ubuntu runner
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # Action to check out your repository code
+
+      - name: Generate SBOM with Syft and Scan with Grype
+        # This action simplifies the process by installing Syft and Grype,
+        # generating the SBOM, and then running Grype against it.
+        # It's a convenient way to integrate both tools.
+        uses: anchore/sbom-action@v0.12.0
+        with:
+          # Specify the directory to scan. '.' means the current repository root.
+          # Syft will automatically detect common package managers (e.g., npm, pip, go mod, maven, etc.)
+          # and create an SBOM based on their lock files or installed packages.
+          path: .
+          # Output the Grype results to the console.
+          # Other formats like 'json', 'sarif' are also available for integration with other tools.
+          grype-output: "text"
+          # Fail the build if any vulnerabilities of a certain severity are found.
+          # Uncomment and adjust as needed (e.g., 'high', 'critical', 'medium').
+          # grype-fail-on-severity: "critical"
+
+      - name: Upload Grype Scan Results as Artifact
+        # This step uploads the Grype scan results as a workflow artifact.
+        # This allows you to download and review the results later, even if the workflow passes.
+        uses: actions/upload-artifact@v4
+        with:
+          name: grype-scan-results
+          path: grype-results.txt # The sbom-action typically outputs to stdout,
+                                  # so you might need to redirect it to a file
+                                  # if you want to upload a specific file.
+                                  # For this example, the output is primarily in the logs.
+                                  # If you set grype-output: "json", you could specify a JSON file here.
+          # If you want to save the output to a file and then upload it,
+          # you would modify the previous step like this:
+          # - name: Generate SBOM with Syft and Scan with Grype
+          #   uses: anchore/sbom-action@v0.12.0
+          #   with:
+          #     path: .
+          #     grype-output: "json"
+          #     grype-output-file: "grype-results.json"
+          # - name: Upload Grype Scan Results as Artifact
+          #   uses: actions/upload-artifact@v4
+          #   with:
+          #     name: grype-scan-results
+          #     path: grype-results.json
