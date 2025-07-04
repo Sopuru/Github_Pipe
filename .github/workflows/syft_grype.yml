@@ -25,10 +25,9 @@ jobs:
         # It's a convenient way to integrate both tools.
         uses: anchore/sbom-action@v0.12.0
         with:
-          # Specify the directory to scan. '.' means the current repository root.
-          # Syft will automatically detect common package managers (e.g., npm, pip, go mod, maven, etc.)
-          # and create an SBOM based on their lock files or installed packages.
-          path: .
+          # Specify the Docker image to scan.
+          # Syft will analyze the image layers and extract software components.
+          image: "alpine:latest"
           # Disable the action's internal artifact upload to avoid naming conflicts.
           upload-artifact: false
           # Output the Grype results to a file.
