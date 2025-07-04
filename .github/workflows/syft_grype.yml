@@ -1,9 +1,22 @@
+# .github/workflows/vulnerability-scan.yml
+
+name: Vulnerability Scan (Syft & Grype)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
 env:
   SBOM_PATH: ./sbom.spdx.json
+  IMAGE_NAME: alpine:latest
 
 jobs:
   scan:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -11,18 +24,21 @@ jobs:
       - name: Generate SBOM with Syft
         uses: anchore/sbom-action@v0.12.0
         with:
-          image: "alpine:latest"
+          image: ${{ env.IMAGE_NAME }}
           output-file: ${{ env.SBOM_PATH }}
           upload-artifact: false
 
       - name: Confirm SBOM File Exists
         run: |
-          echo "Listing workspace files..."
-          ls -la
-          echo "Checking SBOM path: $SBOM_PATH"
-          test -f "$SBOM_PATH" && echo "SBOM file found." || (echo "SBOM not found!" && exit 1)
+          echo "Checking if SBOM file exists at $SBOM_PATH..."
+          if [ ! -f "$SBOM_PATH" ]; then
+            echo "Error: SBOM file not found!"
+            find . -name "*.json"
+            exit 1
+          fi
+          echo "SBOM file found."
 
-      - name: Display SBOM
+      - name: Display Generated SBOM
         run: |
           echo "--- Generated SBOM ---"
           cat $SBOM_PATH
@@ -37,17 +53,19 @@ jobs:
         run: |
           grype sbom:$SBOM_PATH -o table > grype-results.txt
 
-      - name: Display Grype Results
+      - name: Display Grype Scan Results
         run: |
+          echo "--- Grype Scan Results ---"
           cat grype-results.txt
+          echo "--------------------------"
 
-      - name: Upload SBOM Artifact
+      - name: Upload SBOM as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: sbom
           path: ${{ env.SBOM_PATH }}
 
-      - name: Upload Grype Scan Results Artifact
+      - name: Upload Grype Scan Results as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: grype-results
