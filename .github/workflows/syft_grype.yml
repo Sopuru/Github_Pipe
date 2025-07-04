@@ -1,72 +1,34 @@
-# .github/workflows/vulnerability-scan.yml
-
-name: Vulnerability Scan (Syft & Grype)
+name: Debug SBOM Output Path
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  workflow_dispatch:
-
-env:
-  SBOM_PATH: ./sbom.spdx.json
-  IMAGE_NAME: alpine:latest
+  workflow_dispatch: # Trigger manually
 
 jobs:
-  scan:
+  debug-sbom:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Generate SBOM with Syft
         uses: anchore/sbom-action@v0.12.0
         with:
-          image: ${{ env.IMAGE_NAME }}
-          output-file: ${{ env.SBOM_PATH }}
+          image: "alpine:latest"
+          output-file: "sbom.spdx.json"  # Declaring desired output name
           upload-artifact: false
 
-      - name: Confirm SBOM File Exists
+      - name: Print Current Directory
         run: |
-          echo "Checking if SBOM file exists at $SBOM_PATH..."
-          if [ ! -f "$SBOM_PATH" ]; then
-            echo "Error: SBOM file not found!"
-            find . -name "*.json"
-            exit 1
-          fi
-          echo "SBOM file found."
+          echo "Current working directory:"
+          pwd
 
-      - name: Display Generated SBOM
+      - name: List All JSON Files Recursively
         run: |
-          echo "--- Generated SBOM ---"
-          cat $SBOM_PATH
-          echo "----------------------"
+          echo "Searching for all .json files in the workspace..."
+          find $GITHUB_WORKSPACE -name "*.json" || echo "No JSON files found."
 
-      - name: Install Grype
+      - name: Dump File Tree (Depth 3)
         run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
-          grype version
-
-      - name: Scan SBOM with Grype
-        run: |
-          grype sbom:$SBOM_PATH -o table > grype-results.txt
-
-      - name: Display Grype Scan Results
-        run: |
-          echo "--- Grype Scan Results ---"
-          cat grype-results.txt
-          echo "--------------------------"
-
-      - name: Upload SBOM as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom
-          path: ${{ env.SBOM_PATH }}
-
-      - name: Upload Grype Scan Results as Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: grype-results
-          path: grype-results.txt
+          echo "Listing all files and folders (depth 3)..."
+          command -v tree >/dev/null && tree -a -L 3 || find . -maxdepth 3
