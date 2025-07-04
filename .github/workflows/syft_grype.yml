@@ -30,14 +30,32 @@ jobs:
           image: "alpine:latest"
           # Disable the action's internal artifact upload to avoid naming conflicts.
           upload-artifact: false
-          # Output the Grype results to a file.
+          # Output the Grype results to a file in text format for readability in logs.
           grype-output: "text"
           grype-output-file: "grype-results.txt"
-          # Output the SBOM to a file.
+          # Output the SBOM to a file in SPDX JSON format.
           sbom-output-file: "sbom.spdx.json"
           # Fail the build if any vulnerabilities of a certain severity are found.
           # Uncomment and adjust as needed (e.g., 'high', 'critical', 'medium').
           # grype-fail-on-severity: "critical"
+
+      - name: Display Generated SBOM (JSON) in Workflow Log
+        # This step reads the generated sbom.spdx.json file
+        # and prints its content to the standard output,
+        # allowing you to see the JSON SBOM directly in the logs.
+        run: |
+          echo "--- Generated SBOM (sbom.spdx.json) ---"
+          cat sbom.spdx.json
+          echo "----------------------------------------"
+
+      - name: Display Grype Scan Results in Workflow Log
+        # This step reads the generated grype-results.txt file
+        # and prints its content to the standard output,
+        # making the scan results visible directly in the GitHub Actions workflow logs.
+        run: |
+          echo "--- Grype Scan Results ---"
+          cat grype-results.txt
+          echo "--------------------------"
 
       - name: Upload SBOM as Artifact
         # This step uploads the generated SBOM as a workflow artifact.
