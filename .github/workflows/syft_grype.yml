@@ -19,6 +19,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4 # Action to check out your repository code
 
+      - name: Create scan-results directory
+        # Explicitly create the directory where scan results will be stored.
+        # This ensures the directory exists before the sbom-action tries to write to it.
+        run: mkdir -p ./scan-results
+
       - name: Generate SBOM with Syft and Scan with Grype
         # This action simplifies the process by installing Syft and Grype,
         # generating the SBOM, and then running Grype against it.
@@ -69,7 +74,6 @@ jobs:
 
       - name: Upload Grype Scan Results as Artifact
         # This step uploads the Grype scan results as a workflow artifact.
-        # This allows you to download and review the results later, even if the workflow passes.
         uses: actions/upload-artifact@v4
         with:
           name: grype-scan-results
