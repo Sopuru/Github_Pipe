@@ -1,34 +1,30 @@
-name: Debug SBOM Output Path
+name: Scan Alpine Image with Syft and Grype
 
 on:
-  workflow_dispatch: # Trigger manually
+  push:
+  workflow_dispatch:
 
 jobs:
-  debug-sbom:
+  scan:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    - name: Checkout repo
+      uses: actions/checkout@v3
 
-      - name: Generate SBOM with Syft
-        uses: anchore/sbom-action@v0.12.0
-        with:
-          image: "alpine:latest"
-          output-file: "sbom.spdx.json"  # Declaring desired output name
-          upload-artifact: false
+    - name: Install Syft
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Print Current Directory
-        run: |
-          echo "Current working directory:"
-          pwd
+    - name: Install Grype
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: List All JSON Files Recursively
-        run: |
-          echo "Searching for all .json files in the workspace..."
-          find $GITHUB_WORKSPACE -name "*.json" || echo "No JSON files found."
+    - name: Pull alpine:latest
+      run: docker pull alpine:latest
 
-      - name: Dump File Tree (Depth 3)
-        run: |
-          echo "Listing all files and folders (depth 3)..."
-          command -v tree >/dev/null && tree -a -L 3 || find . -maxdepth 3
+    - name: Generate SBOM with Syft
+      run: syft alpine:latest -o table
+
+    - name: Scan for vulnerabilities with Grype
+      run: grype alpine:latest -o table
